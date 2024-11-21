@@ -1,0 +1,38 @@
+{
+  "canisters": {
+    "study_group_discussion_canister_backend": {
+      "build": "npx azle study_group_discussion_canister_backend",
+      "candid": "src/study_group_discussion_canister_backend/study_group_discussion_canister_backend.did",
+      "gzip": true,
+      "main": "src/study_group_discussion_canister_backend/src/index.ts",
+      "tech_stack": {
+        "cdk": {
+          "azle": {}
+        },
+        "language": {
+          "javascript": {},
+          "typescript": {}
+        }
+      },
+      "type": "custom",
+      "wasm": ".azle/study_group_discussion_canister_backend/study_group_discussion_canister_backend.wasm"
+    },
+    "study_group_discussion_canister_frontend": {
+      "dependencies": [
+        "study_group_discussion_canister_backend"
+      ],
+      "source": [
+        "src/study_group_discussion_canister_frontend/assets"
+      ],
+      "type": "assets"
+    }
+  },
+  "defaults": {
+    "build": {
+      "args": "",
+      "packtool": ""
+    }
+  },
+  "output_env_file": ".env",
+  "version": 1
+}

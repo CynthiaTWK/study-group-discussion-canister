@@ -28,11 +28,21 @@ function getCurrentTimestamp(): Timestamp {
     return ic.time() / BigInt(1_000_000);
 }
 
+function getGroupById(groupId: nat): StudyGroup | undefined {
+    return groups.find((group: StudyGroup) => group.id === groupId);
+}
+
 // Methods
 export const createGroup = Canister.method(
     [text, text],
     nat,
     (name: text, description: text) => {
+        if (!name || !description) {
+            throw new Error("Name and description are required");
+        }
+        if (name.length < 3 || name.length > 50) {
+            throw new Error("Name must be between 3 and 50 characters");
+        }
         const caller = ic.caller();
         const newGroup: StudyGroup = {
             id: nextGroupId,
@@ -46,6 +56,8 @@ export const createGroup = Canister.method(
         groups.push(newGroup);
         return nextGroupId++;
     });
+
+const MAX_GROUP_MEMBERS = 100;
 
 export const joinGroup = Canister.method(
     [nat],
@@ -62,6 +74,10 @@ export const joinGroup = Canister.method(
             group.members.push(caller);
         }
 
+        if (group.members.length >= MAX_GROUP_MEMBERS) {
+            return "Group has reached maximum capacity";
+        }
+
         return "Successfully joined group";
     });
 
@@ -69,6 +85,12 @@ export const postMessage = Canister.method(
     [nat, text],
     text,
     (groupId: nat, content: text) => {
+        if (!content || content.trim().length === 0) {
+            return "Message content cannot be empty";
+        }
+        if (content.length > 1000) {
+            return "Message content too long";
+        }
         const caller = ic.caller();
         const group = groups.find((group: StudyGroup) => group.id === groupId);
 
@@ -93,15 +115,15 @@ export const postMessage = Canister.method(
 
 export const listGroups = Canister.query([], Vec(StudyGroup), () => {
     return groups;
-});    return groups;
 });
 
 export const getGroupDiscussions = Canister.query(
-    [nat],
-    Vec(Principal),
-    (groupId: nat) => {
-        const group = groups.find((group: { id: any; }) => group.id === groupId);
-        return group ? group.messages : [];
+    [nat, nat, nat],
+    Vec(Message),
+    (groupId: nat, skip: nat, limit: nat) => {
+        const group = groups.find((group: StudyGroup) => group.id === groupId);
+        if (!group) return [];
+        return group.messages.slice(Number(skip), Number(skip) + Number(limit));
     }
 );
 
